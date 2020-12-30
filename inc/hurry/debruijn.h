@@ -41,49 +41,54 @@
 extern "C" {
 # endif
 
+/* The main workhorse: a DeBruijn Sequencer working with a binary alphabet */
 size_t debruijn_01(const unsigned N, char* output, size_t len)
 {
+  /* local constants */
   static const char   ALPHABET[] = "01";
   static const size_t K = 2;
 
+  /* initializations */
   size_t  idx       = 0;
   uint8_t seq[256]  = { 0 };
 
-  void recurse(const unsigned a, const unsigned b)
-  {
-    if (a > N)
-    {
-      if (!(N % b))
-      {
+  /* begin nested function */
+  void recurse(const unsigned a, const unsigned b) {
+    if (a > N) {
+      if (!(N % b)) {
         unsigned i;
-        for (i = 1; i < b + 1; ++i)
-        {
+        for (i = 1; i < b + 1; ++i) {
           if (idx == len)
-          {
             return;
-          }
-
           output[idx++] = ALPHABET[seq[i]];
         }
       }
     }
-    else if (a >= b)
-    {
+    else if (a >= b) {
       seq[a] = seq[a - b];
       recurse(a + 1, b);
       unsigned char j = seq[a - b] + 1;
-      while (j < K)
-      {
+      while (j < K) {
         seq[a] = j++;
         recurse(a + 1, a);
       }
     }
   }
+  /* end nested function `recurse` */
 
+  /* Simply invoke the recursive algorithm: */
   recurse(1, 1);
 
+  /* Return value is the logical length of the output string */
   return idx;
 }
+
+
+/*
+  The rest here are functions that generate binary DeBruijn keys with specific
+  sequence lengths, converted to integers based on the corresponding
+  representation in binary.
+*/
 
 
 uint8_t debruijn_key8()
